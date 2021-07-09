@@ -18,13 +18,31 @@ res = GLMNet.glmnetcv(X, y, rng = rng(17), nfolds = 10)
 @test fitted_params(mach).coef == GLMNet.coef(res)
 @test report(mach).lambdamin == res.lambda[argmin(res.meanloss)]
 
-y = float.(collect(1:100) + rand(RNG, 1:20, 100));
-mach = machine(ElasticNetCVRegressor(family = Distributions.Poisson(), rng = rng()), tX, y) |> fit!
+y = collect(1:100) + rand(RNG, 1:20, 100);
+mach = machine(ElasticNetCVCountRegressor(rng = rng()), tX, y) |> fit!
 res = GLMNet.glmnetcv(X, y, Distributions.Poisson(), rng = rng())
-@test report(mach).meanloss == minimum(res.meanloss)
+@test report(mach).minmeanloss == minimum(res.meanloss)
 
-y = float.(rand(RNG, 1:10, 100, 3))
-mach = machine(ElasticNetCVRegressor(family = Distributions.Multinomial(), rng = rng()), tX, y) |> fit!
+y = rand(RNG, 1:10, 100, 2)
+mach = machine(ElasticNetCVClassifier(rng = rng()), tX, y) |> fit!
+res = GLMNet.glmnetcv(X, y, Distributions.Binomial(), rng = rng())
+@test report(mach).minmeanloss == minimum(res.meanloss)
+@test fitted_params(mach).coef == GLMNet.coef(res)
+
+y = coerce(rand(("bli", "bla"), 100), Multiclass)
+mach = machine(ElasticNetCVClassifier(rng = rng()), tX, y) |> fit!
+res = GLMNet.glmnetcv(X, string.(y), rng = rng())
+@test report(mach).minmeanloss == minimum(res.meanloss)
+@test fitted_params(mach).coef == GLMNet.coef(res)
+
+y = rand(RNG, 1:10, 100, 3)
+mach = machine(ElasticNetCVClassifier(rng = rng()), tX, y) |> fit!
 res = GLMNet.glmnetcv(X, y, Distributions.Multinomial(), rng = rng())
-@test report(mach).meanloss == minimum(res.meanloss)
+@test report(mach).minmeanloss == minimum(res.meanloss)
+@test fitted_params(mach).coef == GLMNet.coef(res)
+
+y = coerce(rand(("bli", "bla", "blu"), 100), Multiclass)
+mach = machine(ElasticNetCVClassifier(rng = rng()), tX, y) |> fit!
+res = GLMNet.glmnetcv(X, string.(y), rng = rng())
+@test report(mach).minmeanloss == minimum(res.meanloss)
 @test fitted_params(mach).coef == GLMNet.coef(res)

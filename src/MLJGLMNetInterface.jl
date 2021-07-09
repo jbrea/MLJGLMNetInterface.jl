@@ -111,7 +111,8 @@ family(::Union{ElasticNetRegressor, ElasticNetCVRegressor}) = Distributions.Norm
 family(::Union{ElasticNetCountRegressor, ElasticNetCVCountRegressor}) = Distributions.Poisson()
 # family(::Union{ElasticNetCoxRegressor, ElasticNetCVCoxRegressor}) = Distributions.CoxPH()
 function family(::Union{ElasticNetClassifier, ElasticNetCVClassifier}, y)
-    if length(MMI.classes(y)) == 2
+    n_classes = isa(y, AbstractMatrix) ? size(y, 2) : length(MMI.classes(y))
+    if n_classes == 2
         Distributions.Binomial()
     else
         Distributions.Multinomial()
@@ -171,7 +172,7 @@ end
 
 function _predict(::Union{ElasticNetClassifier, ElasticNetCVClassifier},
                   η, (_, decode))
-    cls = MMI.classes(decode)
+    cls = isa(decode, AbstractMatrix) ? (1:size(decode, 2)) : MMI.classes(decode)
     if length(cls) == 2
         η = [1 .- η η]
     end
