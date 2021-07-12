@@ -174,9 +174,13 @@ function _predict(::Union{ElasticNetClassifier, ElasticNetCVClassifier},
                   η, (_, decode))
     cls = isa(decode, AbstractMatrix) ? (1:size(decode, 2)) : MMI.classes(decode)
     if length(cls) == 2
-        η = [1 .- η η]
+        MMI.UnivariateFinite.(Ref(cls), η, augment = true)
+    elseif isa(η, AbstractArray{<:Number, 2})
+        [MMI.UnivariateFinite(cls, η[i, :]) for i in 1:size(η, 1)]
+    else
+        [MMI.UnivariateFinite(cls, η[i, :, j])
+         for i in 1:size(η, 1), j in 1:size(η, 3)]
     end
-    MMI.UnivariateFinite(cls, η)
 end
 
 function _predict(::Union{ElasticNetCountRegressor, ElasticNetCVCountRegressor},
